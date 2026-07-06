@@ -29,7 +29,7 @@
 
     <div class="config-box">
         <label>📱 봇 스마트폰 IP 주소 입력 : </label>
-        <input type="text" id="botIp" value="118.221.204.135" placeholder="예: 118.221.204.135">
+        <input type="text" id="botIp" value="172.30.2.28" placeholder="예: 172.30.2.28">
         <button onclick="fetchBotData()">🔄 데이터 동기화</button>
     </div>
 
@@ -66,7 +66,6 @@
 </div>
 
 <script>
-    // 서버에서 데이터를 전송받아 화면을 갱신하는 코어 함수
     function fetchBotData() {
         const ip = document.getElementById('botIp').value.trim();
         if(!ip) return;
@@ -74,10 +73,8 @@
         fetch(`http://${ip}:8080/api/data`)
             .then(res => res.json())
             .then(data => {
-                // 1. 관리자 갱신
                 document.getElementById('adminList').innerText = data.admins.length > 0 ? data.admins.join(', ') : '없음';
 
-                // 2. 유저 테이블 갱신
                 const tbody = document.getElementById('userTableBody');
                 tbody.innerHTML = '';
                 
@@ -99,17 +96,14 @@
                     tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">DB에 수집된 유저가 존재하지 않습니다.</td></tr>';
                 }
 
-                // 3. 로그 창 갱신
                 const logBox = document.getElementById('logBox');
                 logBox.innerHTML = data.logs.length > 0 ? data.logs.join('<br>') : '기록된 로그가 없습니다.';
             })
             .catch(err => {
                 console.error(err);
-                // 자동 갱신 중 화면 흐름을 방해하지 않기 위해 얼럿 창은 띄우지 않고 콘솔로그로만 처리합니다.
             });
     }
 
-    // 관리자 추가 요청 함수
     function addAdmin() {
         const ip = document.getElementById('botIp').value.trim();
         const name = document.getElementById('newAdminName').value.trim();
@@ -124,7 +118,6 @@
             });
     }
 
-    // 관리자 전체 삭제 요청 함수
     function clearAdmins() {
         if(!confirm('정말로 관리자 명단을 전부 삭제하시겠습니까?')) return;
         const ip = document.getElementById('botIp').value.trim();
@@ -137,10 +130,8 @@
             });
     }
 
-    // 처음 페이지 열릴 때 데이터 로드
     window.onload = function() {
         fetchBotData();
-        // 5초마다 실시간 자동 데이터 갱신
         setInterval(fetchBotData, 5000);
     };
 </script>
