@@ -25,24 +25,24 @@
 <body>
 
 <div class="container">
-    <h1>🌐 Pixel Bot 원격 관리 제어 관제탑</h1>
+    <h1>Pixel Bot 원격 관리 제어 관제탑</h1>
 
     <div class="config-box">
-        <label>📱 봇 스마트폰 IP 주소 입력 : </label>
+        <label>봇이 작동중인 IP 주소 입력 : </label>
         <input type="text" id="botIp" value="118.221.204.135" placeholder="예: 118.221.204.135">
         <button onclick="fetchBotData()">🔄 데이터 동기화</button>
     </div>
 
     <div class="card">
-        <h2>🛡️ 최고 관리자 명단 제어 (Admin 설정)</h2>
+        <h2>최고 관리자 명단 제어 (Admin 설정)</h2>
         <p><strong>현재 권한 소지자 목록:</strong> <span id="adminList" style="color:#81c784;">불러오는 중...</span></p>
         <input type="text" id="newAdminName" placeholder="추가할 관리자 닉네임 입력">
         <button onclick="addAdmin()">➕ 관리자 등록</button>
-        <button class="danger" onclick="clearAdmins()">⚠️ 명단 전체 초기화</button>
+        <button class="danger" onclick="clearAdmins()">명단 전체 초기화</button>
     </div>
 
     <div class="card">
-        <h2>👤 서버 유저 데이터베이스 리스트 (레벨 및 채팅)</h2>
+        <h2>서버 유저 데이터베이스 리스트 (레벨 및 채팅)</h2>
         <table>
             <thead>
                 <tr>
@@ -60,7 +60,7 @@
     </div>
 
     <div class="card">
-        <h2>📝 실시간 봇 작동 및 채팅 로그 (5초마다 자동 갱신)</h2>
+        <h2>실시간 봇 작동 및 채팅 로그 (5초마다 자동 갱신)</h2>
         <div class="log-area" id="logBox">대시보드가 연결되면 이곳에 실시간 채팅 로그가 기록됩니다.</div>
     </div>
 </div>
