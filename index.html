@@ -29,7 +29,7 @@
 
     <div class="config-box">
         <label>📱 봇 스마트폰 IP 주소 입력 : </label>
-        <input type="text" id="botIp" value="192.168.0.15" placeholder="예: 192.168.0.15">
+        <input type="text" id="botIp" value="118.221.204.135" placeholder="예: 118.221.204.135">
         <button onclick="fetchBotData()">🔄 데이터 동기화</button>
     </div>
 
@@ -60,7 +60,7 @@
     </div>
 
     <div class="card">
-        <h2>📝 실시간 봇 작동 및 채팅 로그 (최신 50개 자동 갱신)</h2>
+        <h2>📝 실시간 봇 작동 및 채팅 로그 (5초마다 자동 갱신)</h2>
         <div class="log-area" id="logBox">대시보드가 연결되면 이곳에 실시간 채팅 로그가 기록됩니다.</div>
     </div>
 </div>
@@ -69,7 +69,7 @@
     // 서버에서 데이터를 전송받아 화면을 갱신하는 코어 함수
     function fetchBotData() {
         const ip = document.getElementById('botIp').value.trim();
-        if(!ip) return alert('스마트폰의 IP 주소를 입력해주세요!');
+        if(!ip) return;
 
         fetch(`http://${ip}:8080/api/data`)
             .then(res => res.json())
@@ -105,7 +105,7 @@
             })
             .catch(err => {
                 console.error(err);
-                alert('봇 스마트폰 연결에 실패했습니다!\n1. 스마트폰과 PC가 같은 Wi-Fi에 연결되어 있는지\n2. IP 주소가 정확한지 확인해주세요.');
+                // 자동 갱신 중 화면 흐름을 방해하지 않기 위해 얼럿 창은 띄우지 않고 콘솔로그로만 처리합니다.
             });
     }
 
@@ -120,7 +120,7 @@
             .then(data => {
                 alert(`'${name}'님이 관리자로 임명되었습니다.`);
                 document.getElementById('newAdminName').value = '';
-                fetchBotData(); // 리로드
+                fetchBotData();
             });
     }
 
@@ -137,11 +137,12 @@
             });
     }
 
-    // 5초마다 실시간 자동 데이터 갱신 서브 루틴 가동
-    setInterval(() => {
-        const ip = document.getElementById('botIp').value.trim();
-        if(ip) fetchBotData();
-    }, 5000);
+    // 처음 페이지 열릴 때 데이터 로드
+    window.onload = function() {
+        fetchBotData();
+        // 5초마다 실시간 자동 데이터 갱신
+        setInterval(fetchBotData, 5000);
+    };
 </script>
 </body>
 </html>
