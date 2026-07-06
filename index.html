@@ -28,8 +28,8 @@
     <h1>🌐 Pixel Bot 원격 관리 제어 관제탑</h1>
 
     <div class="config-box">
-        <label>📱 봇 스마트폰 IP 주소 입력 : </label>
-        <input type="text" id="botIp" value="172.30.2.28" placeholder="예: 172.30.2.28">
+        <label>📱 봇 스마트폰 외부 IP 주소 : </label>
+        <input type="text" id="botIp" value="125.187.60.7" placeholder="예: 125.187.60.7">
         <button onclick="fetchBotData()">🔄 데이터 동기화</button>
     </div>
 
@@ -74,7 +74,6 @@
             .then(res => res.json())
             .then(data => {
                 document.getElementById('adminList').innerText = data.admins.length > 0 ? data.admins.join(', ') : '없음';
-
                 const tbody = document.getElementById('userTableBody');
                 tbody.innerHTML = '';
                 
@@ -95,7 +94,6 @@
                 if(!hasUsers) {
                     tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">DB에 수집된 유저가 존재하지 않습니다.</td></tr>';
                 }
-
                 const logBox = document.getElementById('logBox');
                 logBox.innerHTML = data.logs.length > 0 ? data.logs.join('<br>') : '기록된 로그가 없습니다.';
             })
