@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pixel Bot 전용 원격 대시보드 웹사이트</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #1e1e24; color: #fff; margin: 0; padding: 20px; }
+        h1 { color: #4fc3f7; text-align: center; }
+        .container { max-width: 1100px; margin: 0 auto; }
+        .config-box { background: #2a2a35; padding: 15px; border-radius: 8px; margin-bottom: 20px; display: flex; gap: 10px; align-items: center; justify-content: center; }
+        .card { background: #23232a; border-radius: 8px; padding: 20px; margin-bottom: 20px; border: 1px solid #3a3a4a; }
+        h2 { margin-top: 0; color: #ffb74d; border-bottom: 1px solid #3a3a4a; padding-bottom: 8px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #3a3a4a; }
+        th { background-color: #0288d1; color: white; }
+        tr:hover { background-color: #2a2a35; }
+        input[type=text] { padding: 10px; border: 1px solid #444; background: #1e1e24; color: #fff; border-radius: 4px; width: 250px; }
+        button { padding: 10px 20px; background: #4caf50; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        button.danger { background: #f44336; }
+        button:hover { opacity: 0.9; }
+        .log-area { background: #141419; padding: 15px; border-radius: 6px; height: 250px; overflow-y: auto; font-family: monospace; color: #a5d6a7; line-height: 1.6; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>🌐 Pixel Bot 원격 관리 제어 관제탑</h1>
+
+    <div class="config-box">
+        <label>📱 봇 스마트폰 IP 주소 입력 : </label>
+        <input type="text" id="botIp" value="192.168.0.15" placeholder="예: 192.168.0.15">
+        <button onclick="fetchBotData()">🔄 데이터 동기화</button>
+    </div>
+
+    <div class="card">
+        <h2>🛡️ 최고 관리자 명단 제어 (Admin 설정)</h2>
+        <p><strong>현재 권한 소지자 목록:</strong> <span id="adminList" style="color:#81c784;">불러오는 중...</span></p>
+        <input type="text" id="newAdminName" placeholder="추가할 관리자 닉네임 입력">
+        <button onclick="addAdmin()">➕ 관리자 등록</button>
+        <button class="danger" onclick="clearAdmins()">⚠️ 명단 전체 초기화</button>
+    </div>
+
+    <div class="card">
+        <h2>👤 서버 유저 데이터베이스 리스트 (레벨 및 채팅)</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>유저 닉네임</th>
+                    <th>레벨 (Level)</th>
+                    <th>총 누적 채팅 수</th>
+                    <th>누적 경고 횟수</th>
+                    <th>현재 상태</th>
+                </tr>
+            </thead>
+            <tbody id="userTableBody">
+                <tr><td colspan="5" style="text-align:center;">데이터가 없습니다. 동기화를 진행해 주세요.</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="card">
+        <h2>📝 실시간 봇 작동 및 채팅 로그 (최신 50개 자동 갱신)</h2>
+        <div class="log-area" id="logBox">대시보드가 연결되면 이곳에 실시간 채팅 로그가 기록됩니다.</div>
+    </div>
+</div>
+
+<script>
+    // 서버에서 데이터를 전송받아 화면을 갱신하는 코어 함수
+    function fetchBotData() {
+        const ip = document.getElementById('botIp').value.trim();
+        if(!ip) return alert('스마트폰의 IP 주소를 입력해주세요!');
+
+        fetch(`http://${ip}:8080/api/data`)
+            .then(res => res.json())
+            .then(data => {
+                // 1. 관리자 갱신
+                document.getElementById('adminList').innerText = data.admins.length > 0 ? data.admins.join(', ') : '없음';
+
+                // 2. 유저 테이블 갱신
+                const tbody = document.getElementById('userTableBody');
+                tbody.innerHTML = '';
+                
+                let hasUsers = false;
+                for (let hash in data.users) {
+                    hasUsers = true;
+                    let u = data.users[hash];
+                    let lvl = Math.floor(Math.sqrt((u.message_count || 0) / 10));
+                    tbody.innerHTML += `
+                        <tr>
+                            <td><strong>${u.name}</strong></td>
+                            <td style="color:#ffb74d;">Lv.${lvl}</td>
+                            <td>${u.message_count}회</td>
+                            <td style="color:#f44336;">${u.warn_count} / 3</td>
+                            <td><span style="background:#3a3a4a; padding:3px 8px; border-radius:4px;">${u.status.toUpperCase()}</span></td>
+                        </tr>`;
+                }
+                if(!hasUsers) {
+                    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">DB에 수집된 유저가 존재하지 않습니다.</td></tr>';
+                }
+
+                // 3. 로그 창 갱신
+                const logBox = document.getElementById('logBox');
+                logBox.innerHTML = data.logs.length > 0 ? data.logs.join('<br>') : '기록된 로그가 없습니다.';
+            })
+            .catch(err => {
+                console.error(err);
+                alert('봇 스마트폰 연결에 실패했습니다!\n1. 스마트폰과 PC가 같은 Wi-Fi에 연결되어 있는지\n2. IP 주소가 정확한지 확인해주세요.');
+            });
+    }
+
+    // 관리자 추가 요청 함수
+    function addAdmin() {
+        const ip = document.getElementById('botIp').value.trim();
+        const name = document.getElementById('newAdminName').value.trim();
+        if(!name) return alert('닉네임을 입력하세요!');
+
+        fetch(`http://${ip}:8080/api/add_admin?name=${encodeURIComponent(name)}`)
+            .then(res => res.json())
+            .then(data => {
+                alert(`'${name}'님이 관리자로 임명되었습니다.`);
+                document.getElementById('newAdminName').value = '';
+                fetchBotData(); // 리로드
+            });
+    }
+
+    // 관리자 전체 삭제 요청 함수
+    function clearAdmins() {
+        if(!confirm('정말로 관리자 명단을 전부 삭제하시겠습니까?')) return;
+        const ip = document.getElementById('botIp').value.trim();
+
+        fetch(`http://${ip}:8080/api/clear_admin`)
+            .then(res => res.json())
+            .then(data => {
+                alert('관리자 명단이 초기화되었습니다.');
+                fetchBotData();
+            });
+    }
+
+    // 5초마다 실시간 자동 데이터 갱신 서브 루틴 가동
+    setInterval(() => {
+        const ip = document.getElementById('botIp').value.trim();
+        if(ip) fetchBotData();
+    }, 5000);
+</script>
+</body>
+</html>
